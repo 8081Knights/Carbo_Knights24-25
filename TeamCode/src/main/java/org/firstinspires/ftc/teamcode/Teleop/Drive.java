@@ -43,7 +43,7 @@ public class Drive extends OpMode {
         hw.BLdrive().setPower(-(y-rx+x));
         hw.BRdrive().setPower(-(y+rx-x));
 
-        // lift high/low
+        // lift high/low.
         if(gamepad2.a)
         {
             if(hw.Lift().getCurrentPosition() < LiftLow) {
