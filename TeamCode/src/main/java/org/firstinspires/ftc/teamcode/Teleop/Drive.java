@@ -110,7 +110,6 @@ public class Drive extends OpMode {
         //     if (hw.Shoulder().getCurrentPosition() > 0) {
         //          hw.Shoulder().setPosition(0)
 
-        //wrist
 
 
         telemetry.addData("Lodom", hw.FRdrive().getCurrentPosition());
