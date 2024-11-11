@@ -20,15 +20,17 @@ public class Drive extends OpMode {
 
     double y = 0;
     double rx = 0;
+    double shoulder_y = 0;
 
     double x = 0;
 
-    int ArmTargetPos = 500;
-    int LiftLow = -100;
-    int LiftHigh = -2000;
-    int LiftMid = -1000;
+    int ArmTargetPos = 1600;
 
 
+    int[] liftPos = {-100, -1000, -2000};
+    int arrayPos = 0;
+    int targetArrayPos;
+    boolean isPressed = false;
 
     @Override
     public void loop() {
@@ -38,31 +40,67 @@ public class Drive extends OpMode {
         rx = gamepad1.right_stick_x;
         x = gamepad1.left_stick_x;
 
+        shoulder_y = gamepad2.left_stick_y / 3;
+
         hw.FLdrive().setPower(-(y-rx-x));
         hw.FRdrive().setPower(-(y+rx+x));
         hw.BLdrive().setPower(-(y-rx+x));
         hw.BRdrive().setPower(-(y+rx-x));
+        hw.Shoulder().setPower(shoulder_y);
 
-        // lift high/low.
-        if(gamepad2.a)
+
+
+        // rotates through forwards
+        if(gamepad2.a && isPressed == false)
         {
-            if(hw.Lift().getCurrentPosition() < LiftLow) {
-                hw.Lift().setTargetPosition(LiftLow);
-            }
-            else{
-                hw.Lift().setTargetPosition(LiftHigh);
-            }
-            hw.Lift().setVelocity(2000);
-            hw.Lift().setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+                isPressed = true;
+                if (arrayPos == 0) {
+                    targetArrayPos = 1;
+                }
+                if (arrayPos == 1) {
+                    targetArrayPos = 2;
+                }
+                if (arrayPos == 2) {
+                    targetArrayPos = 0;
+                }
+                hw.Lift().setTargetPosition(liftPos[targetArrayPos]);
+                arrayPos = targetArrayPos;
+                hw.Lift().setVelocity(2000);
+                hw.Lift().setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                isPressed = false;
+
 
         }
 
-        // lift mid
+        // rotates through backwards
         if(gamepad2.b)
         {
-            hw.Lift().setTargetPosition(LiftMid);
-            hw.Lift().setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            hw.Lift().setVelocity(2000);
+            if(isPressed == false) {
+                isPressed = true;
+                if (arrayPos == 0) {
+                    targetArrayPos = 2;
+                }
+                if (arrayPos == 1) {
+                    targetArrayPos = 0;
+                }
+                if (arrayPos == 2) {
+                    targetArrayPos = 1;
+                }
+                hw.Lift().setTargetPosition(liftPos[targetArrayPos]);
+                arrayPos = targetArrayPos;
+                telemetry.update();
+                try{
+                    wait();
+                }
+                catch(Exception e){
+                    hw.Lift().setVelocity(0);
+                }
+                hw.Lift().setVelocity(2000);
+                hw.Lift().setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                isPressed = false;
+                telemetry.update();
+            }
         }
 
         // claw open/close
@@ -118,6 +156,8 @@ public class Drive extends OpMode {
         telemetry.addData("Lift", hw.Lift().getCurrentPosition());
         telemetry.addData("Claw", hw.Claw().getPosition());
         telemetry.addData("Arm", hw.Arm().getCurrentPosition());
+        telemetry.addData("LiftPressed", isPressed);
+        telemetry.addData("Lift Target", hw.Lift().getTargetPosition());
         telemetry.update();
 
     }

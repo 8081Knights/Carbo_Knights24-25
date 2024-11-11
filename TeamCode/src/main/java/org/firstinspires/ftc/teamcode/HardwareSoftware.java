@@ -52,6 +52,8 @@ public class HardwareSoftware {
         FRdrive.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
         BLdrive.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
 
+        Shoulder.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+
         Arm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         Arm.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
 
@@ -64,13 +66,13 @@ public class HardwareSoftware {
         BRdrive.setDirection(DcMotorEx.Direction.FORWARD);
         Arm.setDirection(DcMotorSimple.Direction.REVERSE);
 
-
-
         FLdrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         BRdrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         FRdrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         BLdrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         Arm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        Lift.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        Shoulder.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
 
 
