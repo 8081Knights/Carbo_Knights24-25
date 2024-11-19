@@ -15,6 +15,7 @@ public class Drive extends OpMode {
     public void init() {
 
         hw.init(hardwareMap);
+       //  hw.Wrist().setPosition(0.0);
 
     }
 
@@ -26,11 +27,9 @@ public class Drive extends OpMode {
 
     int ArmTargetPos = 1600;
 
+    boolean Claw = false;
 
-    int[] liftPos = {-100, -1000, -2000};
-    int arrayPos = 0;
-    int targetArrayPos;
-    boolean isPressed = false;
+
 
     @Override
     public void loop() {
@@ -46,77 +45,49 @@ public class Drive extends OpMode {
         hw.FRdrive().setPower(-(y+rx+x));
         hw.BLdrive().setPower(-(y-rx+x));
         hw.BRdrive().setPower(-(y+rx-x));
+
         hw.Shoulder().setPower(shoulder_y);
 
 
 
-        // rotates through forwards
-        if(gamepad2.a && isPressed == false)
-        {
-
-                isPressed = true;
-                if (arrayPos == 0) {
-                    targetArrayPos = 1;
-                }
-                if (arrayPos == 1) {
-                    targetArrayPos = 2;
-                }
-                if (arrayPos == 2) {
-                    targetArrayPos = 0;
-                }
-                hw.Lift().setTargetPosition(liftPos[targetArrayPos]);
-                arrayPos = targetArrayPos;
+// lift
+        if(gamepad2.a ){
+                hw.Lift().setTargetPosition(-100);
                 hw.Lift().setVelocity(2000);
                 hw.Lift().setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                isPressed = false;
-
-
         }
 
-        // rotates through backwards
-        if(gamepad2.b)
-        {
-            if(isPressed == false) {
-                isPressed = true;
-                if (arrayPos == 0) {
-                    targetArrayPos = 2;
-                }
-                if (arrayPos == 1) {
-                    targetArrayPos = 0;
-                }
-                if (arrayPos == 2) {
-                    targetArrayPos = 1;
-                }
-                hw.Lift().setTargetPosition(liftPos[targetArrayPos]);
-                arrayPos = targetArrayPos;
-                telemetry.update();
-                try{
-                    wait();
-                }
-                catch(Exception e){
-                    hw.Lift().setVelocity(0);
-                }
-                hw.Lift().setVelocity(2000);
-                hw.Lift().setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                isPressed = false;
-                telemetry.update();
-            }
+        if(gamepad2.b ){
+            hw.Lift().setTargetPosition(-3200);
+            hw.Lift().setVelocity(1500);
+            hw.Lift().setMode(DcMotor.RunMode.RUN_TO_POSITION);
+    }
+        if(gamepad1.b ){
+            hw.Lift().setTargetPosition(-1000);
+            hw.Lift().setVelocity(2000);
+            hw.Lift().setMode(DcMotor.RunMode.RUN_TO_POSITION);
         }
 
         // claw open/close
-        if(gamepad2.x)
+        if(gamepad2.x && !Claw)
         {
-            if(hw.Claw().getPosition() != 0) {
-                hw.Claw().setPosition(0);
-            }
-            else {
-                hw.Claw().setPosition(0.1);
-            }
+            Claw = true;
         }
+        else if (gamepad2.x && Claw){
+            Claw = false;
+        }
+
+        if(Claw){
+                hw.Claw().setPosition(0.2);
+            }
+            // close
+            else {
+                hw.Claw().setPosition(0.4);
+            }
 
         // arm down
         if(gamepad2.left_trigger > 0.5) {
-            hw.Arm().setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            hw.Arm().setTargetPosition(0);
             if(hw.Arm().getCurrentPosition() > 0)
             hw.Arm().setVelocity(-1000);
             else
@@ -139,14 +110,62 @@ public class Drive extends OpMode {
 
         // bucket
         if(gamepad2.right_bumper) {
-            hw.Bucket().setPosition(1);}
+            hw.Bucket().setPosition(0.5);}
         if(gamepad2.left_bumper) {
-            hw.Bucket().setPosition(0);}
+            hw.Bucket().setPosition(0.7);}
 
-        //shoulder
-        // if (gamepad2.y) {
-        //     if (hw.Shoulder().getCurrentPosition() > 0) {
-        //          hw.Shoulder().setPosition(0)
+        // wrist
+        if(gamepad2.y) {
+            if (hw.Wrist().getPosition() == 0.10) {
+                hw.Wrist().setPosition(0.75);
+            }
+            else {
+                hw.Wrist().setPosition(0.10);
+            }
+        }
+
+        if (gamepad2.dpad_up) {
+            hw.Arm().setTargetPosition(0);
+            hw.Arm().setVelocity(1000);
+            while(hw.Shoulder().getCurrentPosition() > 0) {
+                hw.Shoulder().setPower(-0.3);
+            }
+            hw.Claw().setPosition(0.1);
+            hw.Lift().setTargetPosition(-2000);
+            hw.Lift().setVelocity(2000);
+            hw.Lift().setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        }
+
+        if (gamepad2.dpad_down) {
+            hw.Bucket().setPosition(1);
+            hw.Lift().setTargetPosition(0);
+            hw.Lift().setVelocity(2000);
+            hw.Lift().setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            hw.Bucket().setPosition(0);
+        }
+
+        /*
+        put specimen on bar
+
+        while (hw.Shoulder().getCurrentPosition() != SpecPos) {
+            hw.Shoulder().setPower(0.3);
+        }
+        hw.Arm().setVelocity(1000);
+
+        shoulder rotate slightly/arm retract to secure hook on bar??
+        claw release
+        arm go down
+
+
+
+        pick up a thing
+
+        arm extend
+        claw open
+        shoulder rotate
+        claw close
+        shoulder rotate
+         */
 
 
 
@@ -156,8 +175,10 @@ public class Drive extends OpMode {
         telemetry.addData("Lift", hw.Lift().getCurrentPosition());
         telemetry.addData("Claw", hw.Claw().getPosition());
         telemetry.addData("Arm", hw.Arm().getCurrentPosition());
-        telemetry.addData("LiftPressed", isPressed);
+        telemetry.addData("Wrist", hw.Wrist().getPosition());
         telemetry.addData("Lift Target", hw.Lift().getTargetPosition());
+        telemetry.addData("Bucket Pos", hw.Bucket().getPosition());
+
         telemetry.update();
 
     }
