@@ -28,7 +28,78 @@ public class Drive extends OpMode {
     int ArmTargetPos = 1600;
 
     boolean Claw = false;
+    int liftPosHigh = -3200;
+    int liftPosLow = -10;
+    int liftPosMid = -1000;
+    double clawPosOpen = 0.2;
+    double clawPosClosed = 0.4;
+    double bucketPos1 = 0.5;
+    double bucketPos2 = 0.7;
+    double wristPos1 = 0.75;
+    double wristPos2 = 0.1;
 
+    public void MoveLiftUp()
+    {
+        hw.Lift().setTargetPosition(liftPosHigh);
+        hw.Lift().setVelocity(1500);
+        hw.Lift().setMode(DcMotor.RunMode.RUN_TO_POSITION);
+    }
+    public void MoveLiftLow()
+    {
+        hw.Lift().setTargetPosition(liftPosLow);
+        hw.Lift().setVelocity(1500);
+        hw.Lift().setMode(DcMotor.RunMode.RUN_TO_POSITION);
+    }
+    public void MoveLiftMid()
+    {
+        hw.Lift().setTargetPosition(liftPosMid);
+        hw.Lift().setVelocity(1500);
+        hw.Lift().setMode(DcMotor.RunMode.RUN_TO_POSITION);
+    }
+    public void OpenClaw()
+    {
+        hw.Claw().setPosition(clawPosOpen);
+    }
+    public void CloseClaw()
+    {
+        hw.Claw().setPosition(clawPosClosed);
+    }
+    public void MoveBucket1()
+    {
+        hw.Bucket().setPosition(bucketPos1);
+    }
+    public void MoveBucket2()
+    {
+        hw.Bucket().setPosition(bucketPos2);
+    }
+    public void MoveWrist1()
+    {
+        hw.Bucket().setPosition(wristPos1);
+    }
+    public void MoveWrist2()
+    {
+        hw.Bucket().setPosition(wristPos2);
+    }
+    public void MoveArmHome()
+    {
+        hw.Arm().setTargetPosition(0);
+        while(hw.Arm().getCurrentPosition() != 0) {
+            hw.Arm().setVelocity(1000);
+        }
+    }
+    public void PrimeArm()
+    {
+        hw.Arm().setTargetPosition(ArmTargetPos);
+        while(hw.Arm().getCurrentPosition() != ArmTargetPos) {
+            hw.Arm().setVelocity(1000);
+        }
+    }
+    public void ResetShoulder()
+    {
+        while(hw.Shoulder().getCurrentPosition() > 0) {
+            hw.Shoulder().setPower(-0.3);
+        }
+    }
 
 
     @Override
@@ -41,49 +112,39 @@ public class Drive extends OpMode {
 
         shoulder_y = gamepad2.left_stick_y / 3;
 
-        hw.FLdrive().setPower(-(y-rx-x));
-        hw.FRdrive().setPower(-(y+rx+x));
-        hw.BLdrive().setPower(-(y-rx+x));
-        hw.BRdrive().setPower(-(y+rx-x));
+        hw.FLdrive().setPower(-(y - rx - x));
+        hw.FRdrive().setPower(-(y + rx + x));
+        hw.BLdrive().setPower(-(y - rx + x));
+        hw.BRdrive().setPower(-(y + rx - x));
 
         hw.Shoulder().setPower(shoulder_y);
 
 
-
 // lift
-        if(gamepad2.a ){
-                hw.Lift().setTargetPosition(-100);
-                hw.Lift().setVelocity(2000);
-                hw.Lift().setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        if (gamepad2.a) {
+            MoveLiftLow();
         }
 
-        if(gamepad2.b ){
-            hw.Lift().setTargetPosition(-3200);
-            hw.Lift().setVelocity(1500);
-            hw.Lift().setMode(DcMotor.RunMode.RUN_TO_POSITION);
-    }
-        if(gamepad1.b ){
-            hw.Lift().setTargetPosition(-1000);
-            hw.Lift().setVelocity(2000);
-            hw.Lift().setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        if (gamepad2.b) {
+            MoveLiftUp();
+        }
+        if (gamepad1.b) {
+            MoveLiftMid();
         }
 
         // claw open/close
-        if(gamepad2.x && !Claw)
-        {
+        if (gamepad2.x && !Claw) {
             Claw = true;
-        }
-        else if (gamepad2.x && Claw){
+        } else if (gamepad2.x && Claw) {
             Claw = false;
         }
 
-        if(Claw){
-                hw.Claw().setPosition(0.2);
-            }
-            // close
-            else {
-                hw.Claw().setPosition(0.4);
-            }
+        if (Claw) {
+            OpenClaw();
+        }
+        else {
+            CloseClaw();
+        }
 
         // arm down
         if(gamepad2.left_trigger > 0.5) {
@@ -110,38 +171,32 @@ public class Drive extends OpMode {
 
         // bucket
         if(gamepad2.right_bumper) {
-            hw.Bucket().setPosition(0.5);}
+            MoveBucket1();
+        }
         if(gamepad2.left_bumper) {
-            hw.Bucket().setPosition(0.7);}
+            MoveBucket2();
+        }
 
         // wrist
         if(gamepad2.y) {
-            if (hw.Wrist().getPosition() == 0.10) {
-                hw.Wrist().setPosition(0.75);
+            if (hw.Wrist().getPosition() == wristPos2) {
+                MoveWrist1();
             }
             else {
-                hw.Wrist().setPosition(0.10);
+                MoveWrist2();
             }
         }
 
         if (gamepad2.dpad_up) {
-            hw.Arm().setTargetPosition(0);
-            hw.Arm().setVelocity(1000);
-            while(hw.Shoulder().getCurrentPosition() > 0) {
-                hw.Shoulder().setPower(-0.3);
-            }
-            hw.Claw().setPosition(0.1);
-            hw.Lift().setTargetPosition(-2000);
-            hw.Lift().setVelocity(2000);
-            hw.Lift().setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            MoveArmHome();
+            ResetShoulder();
+            OpenClaw();
         }
 
         if (gamepad2.dpad_down) {
-            hw.Bucket().setPosition(1);
-            hw.Lift().setTargetPosition(0);
-            hw.Lift().setVelocity(2000);
-            hw.Lift().setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            hw.Bucket().setPosition(0);
+            MoveBucket2();
+            MoveLiftLow();
+            MoveBucket1();
         }
 
         /*
