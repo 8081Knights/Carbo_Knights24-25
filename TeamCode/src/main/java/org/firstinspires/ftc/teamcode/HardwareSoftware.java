@@ -14,7 +14,7 @@ public class HardwareSoftware {
     private HardwareMap hw = null;
 
     DcMotorEx FRdrive    = null;
-   DcMotorEx BRdrive     = null;
+    DcMotorEx BRdrive     = null;
     DcMotorEx BLdrive      = null;
     DcMotorEx FLdrive     = null;
     DcMotorEx Arm = null;
@@ -47,10 +47,15 @@ public class HardwareSoftware {
 
 
 
+        FLdrive.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+        BRdrive.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+        FRdrive.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+        BLdrive.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+
         FLdrive.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
         BRdrive.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
         FRdrive.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
-        BLdrive.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
+        BLdrive.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
 
         Shoulder.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
 

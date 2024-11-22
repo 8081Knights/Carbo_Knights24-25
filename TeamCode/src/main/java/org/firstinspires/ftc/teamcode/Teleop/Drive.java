@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.Teleop;
 
+import static java.lang.Thread.sleep;
+
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -27,32 +29,29 @@ public class Drive extends OpMode {
 
     int ArmTargetPos = 1600;
 
-    boolean Claw = false;
-    int liftPosHigh = -3200;
+    int ArmToBucketPos = 200;
+
+    boolean ClawOpen = true;
+    boolean Wrist = true;
+    boolean Bucket = true;
+    int liftPosHigh = -3800;
     int liftPosLow = -10;
     int liftPosMid = -1000;
     double clawPosOpen = 0.2;
-    double clawPosClosed = 0.4;
-    double bucketPos1 = 0.5;
-    double bucketPos2 = 0.7;
-    double wristPos1 = 0.75;
-    double wristPos2 = 0.1;
+    double clawPosClosed = 0.45;   //originally .4
+    double bucketScorePos = 0.5;     //high bucket score
+    double bucketResetPos = 0.1;   //bucket rest
+    double wristUp = 0.6;     //originally .9
+    double wristDown = 0.1;   //originally .4
 
-    public void MoveLiftUp()
+
+
+
+    int shoulderToBucket = 1240;
+
+    public void MoveLift(int yPos)
     {
-        hw.Lift().setTargetPosition(liftPosHigh);
-        hw.Lift().setVelocity(1500);
-        hw.Lift().setMode(DcMotor.RunMode.RUN_TO_POSITION);
-    }
-    public void MoveLiftLow()
-    {
-        hw.Lift().setTargetPosition(liftPosLow);
-        hw.Lift().setVelocity(1500);
-        hw.Lift().setMode(DcMotor.RunMode.RUN_TO_POSITION);
-    }
-    public void MoveLiftMid()
-    {
-        hw.Lift().setTargetPosition(liftPosMid);
+        hw.Lift().setTargetPosition(yPos);
         hw.Lift().setVelocity(1500);
         hw.Lift().setMode(DcMotor.RunMode.RUN_TO_POSITION);
     }
@@ -64,40 +63,48 @@ public class Drive extends OpMode {
     {
         hw.Claw().setPosition(clawPosClosed);
     }
-    public void MoveBucket1()
+    public void BucketScore()
     {
-        hw.Bucket().setPosition(bucketPos1);
+        hw.Bucket().setPosition(bucketScorePos);
     }
-    public void MoveBucket2()
+    public void ResetBucket()
     {
-        hw.Bucket().setPosition(bucketPos2);
+        hw.Bucket().setPosition(bucketResetPos);
     }
-    public void MoveWrist1()
+    public void MoveWristUp()
     {
-        hw.Bucket().setPosition(wristPos1);
+        hw.Wrist().setPosition(wristUp);
     }
-    public void MoveWrist2()
+    public void MoveWristDown()
     {
-        hw.Bucket().setPosition(wristPos2);
+        hw.Wrist().setPosition(wristDown);
     }
-    public void MoveArmHome()
+    public void MoveArm(int extendPos)
     {
-        hw.Arm().setTargetPosition(0);
-        while(hw.Arm().getCurrentPosition() != 0) {
-            hw.Arm().setVelocity(1000);
+        hw.Arm().setTargetPosition(extendPos);
+        hw.Arm().setVelocity(-1000);
+        if (hw.Arm().getCurrentPosition() == extendPos) {
+            hw.Arm().setVelocity(0);
         }
     }
-    public void PrimeArm()
+   /* public void PrimeArm()
     {
         hw.Arm().setTargetPosition(ArmTargetPos);
         while(hw.Arm().getCurrentPosition() != ArmTargetPos) {
             hw.Arm().setVelocity(1000);
         }
     }
-    public void ResetShoulder()
+
+    */
+    public void MoveShoulder(int ShoulderTarget)
     {
-        while(hw.Shoulder().getCurrentPosition() > 0) {
-            hw.Shoulder().setPower(-0.3);
+        while(hw.Shoulder().getCurrentPosition() != ShoulderTarget) {
+            if (hw.Shoulder().getCurrentPosition() < ShoulderTarget){
+                hw.Shoulder().setPower(-0.3);
+            }
+            else {
+                hw.Shoulder().setPower(0.3);
+            }
         }
     }
 
@@ -122,29 +129,32 @@ public class Drive extends OpMode {
 
 // lift
         if (gamepad2.a) {
-            MoveLiftLow();
+            MoveLift(liftPosHigh);
         }
 
         if (gamepad2.b) {
-            MoveLiftUp();
+            MoveLift(liftPosLow);
         }
         if (gamepad1.b) {
-            MoveLiftMid();
+            MoveLift(liftPosMid);
         }
 
         // claw open/close
-        if (gamepad2.x && !Claw) {
-            Claw = true;
-        } else if (gamepad2.x && Claw) {
-            Claw = false;
+        if (gamepad2.left_bumper && !ClawOpen) {
+            OpenClaw();
+            ClawOpen = true;
+        }
+        if (!gamepad2.left_bumper && ClawOpen) {
+            CloseClaw();
+            ClawOpen = false;
         }
 
-        if (Claw) {
-            OpenClaw();
-        }
-        else {
-            CloseClaw();
-        }
+//        if (Claw) {
+//            OpenClaw();
+//        }
+//        else {
+//            CloseClaw();
+//        }
 
         // arm down
         if(gamepad2.left_trigger > 0.5) {
@@ -170,36 +180,60 @@ public class Drive extends OpMode {
         }
 
         // bucket
-        if(gamepad2.right_bumper) {
-            MoveBucket1();
+        if(gamepad2.right_bumper && Bucket) {
+            if(hw.Bucket().getPosition() != bucketScorePos)
+            BucketScore();
+            else
+                ResetBucket();
+            Bucket = false;
         }
-        if(gamepad2.left_bumper) {
-            MoveBucket2();
-        }
+        if(!gamepad2.right_bumper)
+            Bucket = true;
+ //sample of how to make a button correctly do mulitple things
 
+           /* if(gamepad2.right_bumper)
+            {
+                BucketScore();
+            }
+            if(gamepad2.left_bumper)
+            {
+                ResetBucket();
+            }*/
         // wrist
-        if(gamepad2.y) {
-            if (hw.Wrist().getPosition() == wristPos2) {
-                MoveWrist1();
+        /*if(gamepad2.left_bumper && Wrist) {
+            if (hw.Wrist().getPosition() == wristDown) {
+                MoveWristUp();
             }
             else {
-                MoveWrist2();
+                MoveWristDown();
             }
+            Wrist = false;
+        }
+        if (!gamepad2.left_bumper) {
+            Wrist = true;
+        }
+*/
+        if (gamepad2.x) {
+            MoveWristDown();
+        }
+        if (gamepad2.y) {
+            MoveWristUp();
         }
 
-        if (gamepad2.dpad_up) {
-            MoveArmHome();
-            ResetShoulder();
-            OpenClaw();
+      /*  if (gamepad2.dpad_up) {
+            MoveArm(ArmToBucketPos);
+            MoveWristUp();
+            MoveShoulder(shoulderToBucket);
+            //OpenClaw();
         }
 
         if (gamepad2.dpad_down) {
-            MoveBucket2();
-            MoveLiftLow();
-            MoveBucket1();
+            BucketScore();
+            MoveLift(liftPosLow);
+            ResetBucket();
         }
 
-        /*
+
         put specimen on bar
 
         while (hw.Shoulder().getCurrentPosition() != SpecPos) {
@@ -233,6 +267,7 @@ public class Drive extends OpMode {
         telemetry.addData("Wrist", hw.Wrist().getPosition());
         telemetry.addData("Lift Target", hw.Lift().getTargetPosition());
         telemetry.addData("Bucket Pos", hw.Bucket().getPosition());
+        telemetry.addData("Shoulder Pos", hw.Shoulder().getCurrentPosition());
 
         telemetry.update();
 
