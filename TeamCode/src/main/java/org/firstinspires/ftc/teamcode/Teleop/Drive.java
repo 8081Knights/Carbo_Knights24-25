@@ -2,7 +2,6 @@ package org.firstinspires.ftc.teamcode.Teleop;
 
 import static java.lang.Thread.sleep;
 
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -17,7 +16,7 @@ public class Drive extends OpMode {
     public void init() {
 
         hw.init(hardwareMap);
-       //  hw.Wrist().setPosition(0.0);
+        //  hw.Wrist().setPosition(0.0);
 
     }
 
@@ -87,15 +86,15 @@ public class Drive extends OpMode {
             hw.Arm().setVelocity(0);
         }
     }
-   /* public void PrimeArm()
-    {
-        hw.Arm().setTargetPosition(ArmTargetPos);
-        while(hw.Arm().getCurrentPosition() != ArmTargetPos) {
-            hw.Arm().setVelocity(1000);
-        }
-    }
+    /* public void PrimeArm()
+     {
+         hw.Arm().setTargetPosition(ArmTargetPos);
+         while(hw.Arm().getCurrentPosition() != ArmTargetPos) {
+             hw.Arm().setVelocity(1000);
+         }
+     }
 
-    */
+     */
     public void MoveShoulder(int ShoulderTarget)
     {
         while(hw.Shoulder().getCurrentPosition() != ShoulderTarget) {
@@ -140,11 +139,11 @@ public class Drive extends OpMode {
         }
 
         // claw open/close
-        if (gamepad2.left_bumper && !ClawOpen) {
+        if (gamepad2.x && !ClawOpen) {
             OpenClaw();
             ClawOpen = true;
         }
-        if (!gamepad2.left_bumper && ClawOpen) {
+        if (!gamepad2.x && ClawOpen) {
             CloseClaw();
             ClawOpen = false;
         }
@@ -160,7 +159,7 @@ public class Drive extends OpMode {
         if(gamepad2.left_trigger > 0.5) {
             hw.Arm().setTargetPosition(0);
             if(hw.Arm().getCurrentPosition() > 0)
-            hw.Arm().setVelocity(-1000);
+                hw.Arm().setVelocity(-1000);
             else
                 hw.Arm().setVelocity(0);
         }
@@ -180,16 +179,16 @@ public class Drive extends OpMode {
         }
 
         // bucket
-        if(gamepad2.right_bumper && Bucket) {
+        if(gamepad2.right_bumper || gamepad2.left_bumper && Bucket) {
             if(hw.Bucket().getPosition() != bucketScorePos)
-            BucketScore();
+                BucketScore();
             else
                 ResetBucket();
             Bucket = false;
         }
-        if(!gamepad2.right_bumper)
+        if(!gamepad2.right_bumper && !gamepad2.left_bumper)
             Bucket = true;
- //sample of how to make a button correctly do mulitple things
+        //sample of how to make a button correctly do mulitple things
 
            /* if(gamepad2.right_bumper)
             {
@@ -274,5 +273,3 @@ public class Drive extends OpMode {
     }
 
 }
-
-
